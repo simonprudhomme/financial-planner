@@ -7,11 +7,13 @@ from dateutil.relativedelta import relativedelta
 class Loan:
     def __init__(
         self,
+        name,
         loan_amount,
         annual_rate,
         term_in_year,
         start_date=dt.date.today().isoformat(),
     ):
+        self.name = name
         self.loan_amount = loan_amount
         self.monthly_rate = annual_rate / 1200
         self.periods_in_month = term_in_year * 12
@@ -27,6 +29,9 @@ class Loan:
 
     def calculate_monthly_payment(self):
         return npf.pmt(self.monthly_rate, self.periods_in_month, -self.loan_amount)
+
+    def calculate_monthly_cash_flow(self, date: str):
+        return -self.calculate_monthly_payment()
 
     def calculate_monthly_payment_interest_by_date(self, date):
         difference = relativedelta(

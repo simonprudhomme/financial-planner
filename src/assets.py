@@ -11,6 +11,22 @@ from src.loan import Loan
 logger = logging.getLogger(__name__)
 
 
+class BankAccount:
+    def __init__(self, name, amount: Union[Amount, int]):
+        self.name = name
+        self.amount = amount
+
+    def calculate_monthly_cash_flow(self, date: str):
+        # return 0 as interests are not implemented yet
+        return 0
+
+    def calculate_future_value(self, date: str):
+        if isinstance(self.amount, Amount):
+            return self.amount.calculate_future_value(date)
+        else:
+            return self.amount
+
+
 class Stock:
     def __init__(
         self,
@@ -30,6 +46,10 @@ class Stock:
         )
         total_months = difference.years * 12 + difference.months
         return npf.fv(self.expected_monthly_return, total_months, 0, -self.value)
+
+    def calculate_monthly_cash_flow(self, date: str):
+        # return 0 as dividends/distribution are not implemented yet
+        return 0
 
     def sell_stock(self, percentage: int, date: str):
         current_value = self.calculate_future_value(date)
@@ -72,7 +92,9 @@ class RealEstate:
     ):
         if expense_type in self.monthly_expenses.keys():
             logger.warning(f"Expense type {expense_type} already exists.")
-            overwritting = input("Do you want to overwrite? (y/n)")
+            overwritting = input(
+                f"Do you want to overwrite {expense_type} with {monthly_expense}? (y/n)"
+            )
             if overwritting == "n":
                 return
             logger.info(f"Overwriting {expense_type} with {monthly_expense}")
@@ -91,7 +113,9 @@ class RealEstate:
     def set_monthly_income(self, income_type: str, monthly_income: Union[Amount, int]):
         if income_type in self.monthly_incomes.keys():
             logger.warning(f"Income type {income_type} already exists.")
-            overwritting = input("Do you want to overwrite? (y/n)")
+            overwritting = input(
+                f"Do you want to overwrite {income_type} with {monthly_income}? (y/n)"
+            )
             if overwritting == "n":
                 return
             logger.info(f"Overwriting {income_type} with {monthly_income}")
@@ -107,12 +131,14 @@ class RealEstate:
         return total_incomes
 
     # Cashflow
-    def calculate_monthly_cashflow(self, date):
+    def calculate_monthly_cash_flow(self, date):
         return self.calculate_total_monthly_incomes(
             date
         ) - self.calculate_total_monthly_expenses(date)
 
-    def calculate_future_value(self, date):
+    def calculate_future_value(
+        self, date
+    ):  # TODO: need to improve, as this is the real value, but we also want to calculate the equity in the building
         difference = relativedelta(
             dt.date.fromisoformat(date), dt.date.fromisoformat(self.acquisition_date)
         )
