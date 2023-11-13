@@ -5,13 +5,45 @@ Certainly! Here's an example of how the revised code might look, incorporating t
 from abc import ABC, abstractmethod
 
 class FinancialEntity(ABC):
+    def __init__(self, name, start_date):
+        self.name = name
+        self.start_date = start_date
+
     @abstractmethod
-    def calculate_future_value(self, date: str):
+    def calculate_future_value(self, date):
         pass
 
     @abstractmethod
-    def calculate_monthly_cash_flow(self, date: str):
+    def calculate_monthly_cash_flow(self, date):
         pass
+```
+
+### Modified Classes Inheriting from FinancialEntity
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Amount:
+    value: float
+    annual_inflation_rate: float
+    start_date: str
+```
+
+### Improved `Loan` Class with Better Exception Handling and Validation
+```python
+class Loan(FinancialEntity):
+    def __init__(self, name, loan_amount, annual_rate, term_in_year, start_date):
+        super().__init__(name, start_date)
+        self.loan_amount = loan_amount
+        self.monthly_rate = annual_rate / 1200
+        self.periods_in_month = term_in_year * 12
+
+    def calculate_future_value(self, date: str):
+        # implementation code with exception handling
+
+    def calculate_monthly_cash_flow(self, date: str):
+        # implementation code with exception handling
 ```
 
 ### Implementing Inheritance for Specific Entities
@@ -41,19 +73,6 @@ class FinancialEntityFactory:
         elif entity_type == "real_estate":
             return RealEstate(*args, **kwargs)
         # Add other conditions for different entity types
-```
-
-### Improved `Loan` Class with Better Exception Handling and Validation
-```python
-class Loan(FinancialEntity):
-    def __init__(self, name, loan_amount, annual_rate, term_in_year, start_date):
-        # initialization code with validations
-
-    def calculate_future_value(self, date: str):
-        # implementation code with exception handling
-
-    def calculate_monthly_cash_flow(self, date: str):
-        # implementation code with exception handling
 ```
 
 ### Test Suite for Financial Entities
