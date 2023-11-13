@@ -1,5 +1,5 @@
-ipykernel
-pandas
-openpyxl
-numpy-financial
-python-dateutil
+ipykernel==6.26.0
+pandas===2.1.1
+numpy==1.26.0
+numpy-financial==1.0.0
+python-dateutil==2.8.2

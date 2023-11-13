@@ -1,5 +1,6 @@
-import numpy_financial as npf
 import datetime as dt
+
+import numpy_financial as npf
 from dateutil.relativedelta import relativedelta
 
 
@@ -20,7 +21,7 @@ class Loan:
             self.monthly_rate, self.periods_in_month, -self.loan_amount
         )
         self.monthly_loan_payment_str = f"$ {self.monthly_loan_payment:.2f}"
-        
+
     def calculate_future_value(self, date):
         return npf.pmt(self.monthly_rate, self.periods_in_month, -self.loan_amount)
 

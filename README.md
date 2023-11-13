@@ -15,11 +15,10 @@ Personal Finance Simulator is an innovative Python-based application designed to
 
 ## Local Development
 1. Install Python
-2. Install gcloud CLI
+2. Install pre-commit
+```bash
+pip install pre-commit
 ```
-gcloud auth login
-```
-
 3. Set up a Python virtual environment and install necessary packages:
 ```
 # Create a Python virtual environment
@@ -34,4 +33,5 @@ pip install --upgrade pip
 # Install packages from the requirements file
 pip install -r requirements.txt
 ```
+
 
