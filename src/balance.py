@@ -1,7 +1,5 @@
 import datetime as dt
 
-from loguru import logger
-
 
 class Balance:
     def __init__(self):
@@ -13,3 +11,14 @@ class Balance:
             self.liabilities[entity.name] = entity
         else:
             self.assets[entity.name] = entity
+
+    def calculate_net_worth(self, date: str):
+        net_worth = 0
+        for asset in self.assets.values():
+            net_worth += asset.calculate_future_value(date)
+        for liability in self.liabilities.values():
+            net_worth -= liability.calculate_future_value(date)
+        return net_worth
+
+    def update(self, *arg, **kwarg):
+        pass

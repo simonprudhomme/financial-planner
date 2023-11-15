@@ -1,160 +1,156 @@
 import datetime as dt
-from typing import Optional, Union
+from typing import Optional
 
 import numpy_financial as npf
 from dateutil.relativedelta import relativedelta
 from loguru import logger
 
-from src.amount import Amount
-from src.entity import FinancialEntity
+from src.entity import Entity, FinancialEntity
 from src.loan import Loan
+from src.utils import relativedelta_in_months
 
 
 class BankAccount(FinancialEntity):
     def __init__(
-        self, name, amount: Union[Amount, int], start_date=None, end_date=None
+        self,
+        name,
+        amount: int,
+        annual_inflation_rate: int = 0,
+        start_date=None,
+        end_date=None,
     ):
-        super().__init__(name, start_date, end_date)
-        self.amount = amount
+        super().__init__(name, amount, annual_inflation_rate, start_date, end_date)
 
-    def check_if_active(self, date: str):
-        return (
-            dt.date.fromisoformat(self.start_date)
-            <= dt.date.fromisoformat(date)
-            <= dt.date.fromisoformat(self.end_date)
-        )
+    @property
+    def monthly_inflation_rate(self):
+        if self.annual_inflation_rate == 0:
+            return 0
+        return self.annual_inflation_rate / 1200
+
+    def is_active_on(self, date: str):
+        return self.start_date <= date <= self.end_date
 
     def calculate_future_value(self, date: str):
-        if self.check_if_active(date) is False:
+        if self.is_active_on(date) is False:
             return 0
-        if isinstance(self.amount, Amount):
-            return self.amount.calculate_future_value(date)
-        return self.amount
+        if self.annual_inflation_rate == 0:
+            return self.amount
+        total_months = relativedelta_in_months(date, self.start_date)
+        return npf.fv(
+            rate=self.monthly_inflation_rate, nper=total_months, pmt=0, pv=-self.amount
+        )
 
     def calculate_monthly_cash_flow(self, date: str):
         return 0
+
+    def update(
+        self, amount, annual_inflation_rate=None, start_date=None, end_date=None
+    ):
+        name = self.name
+        annual_inflation_rate = (
+            self.annual_inflation_rate
+            if annual_inflation_rate is None
+            else annual_inflation_rate
+        )
+        start_date = self.start_date if start_date is None else self.start_date
+        amount = self.calculate_future_value(start_date) + amount
+        if amount < 0:
+            logger.error(f"Bank account {self.name} has a negative balance.")
+            raise ValueError
+        super().__init__(name, amount, annual_inflation_rate, start_date, end_date)
 
 
 class Stock(FinancialEntity):
     def __init__(
-        self, name, value: int, expected_annual_return, start_date=None, end_date=None
+        self,
+        name,
+        amount: int,
+        annual_expected_return: int,
+        start_date=None,
+        end_date=None,
     ):
-        super().__init__(name, start_date, end_date)
-        self.name = name
-        self.value = value
-        self.expected_monthly_return = expected_annual_return / 1200
-        self.start_date = start_date
+        super().__init__(name, amount, annual_expected_return, start_date, end_date)
 
-    def check_if_active(self, date: str):
-        return (
-            dt.date.fromisoformat(self.start_date)
-            <= dt.date.fromisoformat(date)
-            <= dt.date.fromisoformat(self.end_date)
-        )
+    @property
+    def monthly_inflation_rate(self):
+        if self.annual_inflation_rate == 0:
+            return 0
+        return self.annual_inflation_rate / 1200
+
+    def is_active_on(self, date: str):
+        return self.start_date <= date <= self.end_date
 
     def calculate_future_value(self, date: str):
-        difference = relativedelta(
-            dt.date.fromisoformat(date), dt.date.fromisoformat(self.start_date)
+        if self.is_active_on(date) is False:
+            return 0
+        if self.annual_inflation_rate == 0:
+            return self.amount
+        total_months = relativedelta_in_months(date, self.start_date)
+        return npf.fv(
+            rate=self.monthly_inflation_rate, nper=total_months, pmt=0, pv=-self.amount
         )
-        total_months = difference.years * 12 + difference.months
-        return npf.fv(self.expected_monthly_return, total_months, 0, -self.value)
 
     def calculate_monthly_cash_flow(self, date: str):
-        # return 0 as dividends/distribution are not implemented yet
         return 0
 
-    def sell_stock(self, percentage: int, date: str):
-        # TODO: need to implement the sell_stock method
-        pass
+    def update(
+        self, amount, annual_expected_return=None, start_date=None, end_date=None
+    ):
+        name = self.name
+        annual_inflation_rate = (
+            self.annual_inflation_rate
+            if annual_expected_return is None
+            else annual_expected_return
+        )
+        start_date = self.start_date if start_date is None else self.start_date
+        amount = self.calculate_future_value(start_date) + amount
+        if amount < 0:
+            logger.error(f"Stock {self.name} has a negative balance.")
+            raise ValueError
+        super().__init__(name, amount, annual_inflation_rate, start_date, end_date)
 
 
 class RealEstate(FinancialEntity):
     def __init__(
         self,
         name,
-        value,
-        cashdown,
-        expected_annual_return,
+        amount: int,
+        cashdown: int,
+        annual_expected_return: int,
         loan: Optional[Loan],
         start_date=None,
         end_date=None,
     ):
-        super().__init__(name, start_date, end_date)
-        self.name = name
-        self.expected_monthly_return = expected_annual_return / 1200
-        self.value = value
+        super().__init__(name, amount, annual_expected_return, start_date, end_date)
         self.cashdown = cashdown
-        self.loan = Optional[Loan]
-        self.monthly_expenses = {}
-        self.monthly_incomes = {}
+        self.loan = loan
+        self.entities = {}
         if loan:
-            self.set_monthly_expense("loan", loan)
+            self.add_entity(loan)
 
-    def check_if_active(self, date: str):
-        return (
-            dt.date.fromisoformat(self.start_date)
-            <= dt.date.fromisoformat(date)
-            <= dt.date.fromisoformat(self.end_date)
-        )
+    @property
+    def monthly_inflation_rate(self):
+        if self.annual_inflation_rate == 0:
+            return 0
+        return self.annual_inflation_rate / 1200
 
-    # Expenses
-    def set_monthly_expense(
-        self, expense_type: str, monthly_expense: Union[Amount, int]
-    ):
-        if expense_type in self.monthly_expenses.keys():
-            logger.warning(f"Expense type {expense_type} already exists.")
-            logger.info(f"Overwriting {expense_type} with {monthly_expense}")
-            self.monthly_expenses[expense_type] = monthly_expense
-        self.monthly_expenses[expense_type] = monthly_expense
+    def is_active_on(self, date: str):
+        return self.start_date <= date <= self.end_date
 
-    def calculate_total_monthly_expenses(self, date):
-        total_expenses = 0
-        for expense_type in self.monthly_expenses.keys():
-            total_expenses += self.monthly_expenses[
-                expense_type
-            ].calculate_future_value(date)
-        return total_expenses
-
-    # Incomes
-    def set_monthly_income(self, income_type: str, monthly_income: Union[Amount, int]):
-        if income_type in self.monthly_incomes.keys():
-            logger.warning(f"Income type {income_type} already exists.")
-            logger.info(f"Overwriting {income_type} with {monthly_income}")
-            self.monthly_incomes[income_type] = monthly_income
-        self.monthly_incomes[income_type] = monthly_income
-
-    def calculate_total_monthly_incomes(self, date):
-        total_incomes = 0
-        for income_type in self.monthly_incomes.keys():
-            total_incomes += self.monthly_incomes[income_type].calculate_future_value(
-                date
-            )
-        return total_incomes
+    def add_entity(self, entity: Entity):
+        self.entities[entity.name] = entity
 
     # Cashflow
     def calculate_monthly_cash_flow(self, date):
-        return self.calculate_total_monthly_incomes(
-            date
-        ) - self.calculate_total_monthly_expenses(date)
-
-    # Equity
-    def calculate_equity(self, date):
-        # cashdown + appreciation + loan principal paid
-        equity = self.cashdown
-        equity += self.calculate_future_value(date) - self.value
-        if isinstance(self.loan, Loan):
-            equity += self.loan.calculate_total_principal_paid_by_date(date)
-        return equity
+        return sum(
+            entity.calculate_monthly_cash_flow(date)
+            for entity in self.entities.values()
+        )
 
     # Future value
     def calculate_future_value(self, date):
-        # TODO: need to improve, as this is the real value, but we also want to calculate the equity in the building
-        difference = relativedelta(
-            dt.date.fromisoformat(date), dt.date.fromisoformat(self.start_date)
-        )
-        total_months = difference.years * 12 + difference.months
-        return npf.fv(self.expected_monthly_return, total_months, 0, -self.value)
+        total_months = relativedelta_in_months(date, self.start_date)
+        return npf.fv(self.monthly_inflation_rate, total_months, 0, -self.amount)
 
-    def sell_real_estate(self, date: str):
-        # TODO: need to implement the sell_real_estate method
+    def update(self):
         pass
