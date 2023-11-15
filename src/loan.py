@@ -18,6 +18,7 @@ class Loan:
         self.monthly_rate = annual_rate / 1200
         self.periods_in_month = term_in_year * 12
         self.start_date = start_date
+        print(self.start_date)
 
         self.monthly_loan_payment = npf.pmt(
             self.monthly_rate, self.periods_in_month, -self.loan_amount
@@ -30,7 +31,7 @@ class Loan:
     def calculate_monthly_payment(self):
         return npf.pmt(self.monthly_rate, self.periods_in_month, -self.loan_amount)
 
-    def calculate_monthly_cash_flow(self, date: str):
+    def calculate_monthly_cash_flow(self, date):
         return -self.calculate_monthly_payment()
 
     def calculate_monthly_payment_interest_by_date(self, date):
@@ -68,7 +69,9 @@ class Loan:
         total_months = difference.years * 12 + difference.months
         principal = 0
         for month in range(1, total_months + 1):
-            principal += self.calculate_monthly_payment_principal_by_date(month)
+            principal += npf.ppmt(
+                self.monthly_rate, month, self.periods_in_month, -self.loan_amount
+            )
         return principal
 
     def calculate_remaining_loan_balance_by_date(self, date):

@@ -1,44 +1,56 @@
 import datetime as dt
-import logging
 from typing import Optional, Union
 
 import numpy_financial as npf
 from dateutil.relativedelta import relativedelta
+from loguru import logger
 
 from src.amount import Amount
+from src.entity import FinancialEntity
 from src.loan import Loan
 
-logger = logging.getLogger(__name__)
 
-
-class BankAccount:
-    def __init__(self, name, amount: Union[Amount, int]):
-        self.name = name
+class BankAccount(FinancialEntity):
+    def __init__(
+        self, name, amount: Union[Amount, int], start_date=None, end_date=None
+    ):
+        super().__init__(name, start_date, end_date)
         self.amount = amount
 
-    def calculate_monthly_cash_flow(self, date: str):
-        # return 0 as interests are not implemented yet
-        return 0
+    def check_if_active(self, date: str):
+        return (
+            dt.date.fromisoformat(self.start_date)
+            <= dt.date.fromisoformat(date)
+            <= dt.date.fromisoformat(self.end_date)
+        )
 
     def calculate_future_value(self, date: str):
+        if self.check_if_active(date) is False:
+            return 0
         if isinstance(self.amount, Amount):
             return self.amount.calculate_future_value(date)
-        else:
-            return self.amount
+        return self.amount
+
+    def calculate_monthly_cash_flow(self, date: str):
+        return 0
 
 
-class Stock:
+class Stock(FinancialEntity):
     def __init__(
-        self,
-        name,
-        value: int,
-        expected_annual_return,
-        start_date=dt.date.today().isoformat(),
+        self, name, value: int, expected_annual_return, start_date=None, end_date=None
     ):
+        super().__init__(name, start_date, end_date)
         self.name = name
         self.value = value
         self.expected_monthly_return = expected_annual_return / 1200
         self.start_date = start_date
+
+    def check_if_active(self, date: str):
+        return (
+            dt.date.fromisoformat(self.start_date)
+            <= dt.date.fromisoformat(date)
+            <= dt.date.fromisoformat(self.end_date)
+        )
 
     def calculate_future_value(self, date: str):
         difference = relativedelta(
@@ -52,28 +64,22 @@ class Stock:
         return 0
 
     def sell_stock(self, percentage: int, date: str):
-        current_value = self.calculate_future_value(date)
-        if percentage == 100:
-            self.value = 0
-            self.start_date = date
-            return current_value
-
-        liquidation_value = current_value * percentage / 100
-        self.value = current_value - liquidation_value
-        self.start_date = date
-        return liquidation_value
+        # TODO: need to implement the sell_stock method
+        pass
 
 
-class RealEstate:
+class RealEstate(FinancialEntity):
     def __init__(
         self,
         name,
         value,
         cashdown,
         expected_annual_return,
-        loan: Loan,
-        acquisition_date=dt.date.today().isoformat(),
+        loan: Optional[Loan],
+        start_date=None,
+        end_date=None,
     ):
+        super().__init__(name, start_date, end_date)
         self.name = name
         self.expected_monthly_return = expected_annual_return / 1200
         self.value = value
@@ -81,10 +87,15 @@ class RealEstate:
         self.loan = Optional[Loan]
         self.monthly_expenses = {}
         self.monthly_incomes = {}
-
         if loan:
             self.set_monthly_expense("loan", loan)
-        self.acquisition_date = acquisition_date
+
+    def check_if_active(self, date: str):
+        return (
+            dt.date.fromisoformat(self.start_date)
+            <= dt.date.fromisoformat(date)
+            <= dt.date.fromisoformat(self.end_date)
+        )
 
     # Expenses
     def set_monthly_expense(
@@ -92,11 +103,6 @@ class RealEstate:
     ):
         if expense_type in self.monthly_expenses.keys():
             logger.warning(f"Expense type {expense_type} already exists.")
-            overwritting = input(
-                f"Do you want to overwrite {expense_type} with {monthly_expense}? (y/n)"
-            )
-            if overwritting == "n":
-                return
             logger.info(f"Overwriting {expense_type} with {monthly_expense}")
             self.monthly_expenses[expense_type] = monthly_expense
         self.monthly_expenses[expense_type] = monthly_expense
@@ -113,11 +119,6 @@ class RealEstate:
     def set_monthly_income(self, income_type: str, monthly_income: Union[Amount, int]):
         if income_type in self.monthly_incomes.keys():
             logger.warning(f"Income type {income_type} already exists.")
-            overwritting = input(
-                f"Do you want to overwrite {income_type} with {monthly_income}? (y/n)"
-            )
-            if overwritting == "n":
-                return
             logger.info(f"Overwriting {income_type} with {monthly_income}")
             self.monthly_incomes[income_type] = monthly_income
         self.monthly_incomes[income_type] = monthly_income
@@ -136,17 +137,24 @@ class RealEstate:
             date
         ) - self.calculate_total_monthly_expenses(date)
 
-    def calculate_future_value(
-        self, date
-    ):  # TODO: need to improve, as this is the real value, but we also want to calculate the equity in the building
+    # Equity
+    def calculate_equity(self, date):
+        # cashdown + appreciation + loan principal paid
+        equity = self.cashdown
+        equity += self.calculate_future_value(date) - self.value
+        if isinstance(self.loan, Loan):
+            equity += self.loan.calculate_total_principal_paid_by_date(date)
+        return equity
+
+    # Future value
+    def calculate_future_value(self, date):
+        # TODO: need to improve, as this is the real value, but we also want to calculate the equity in the building
         difference = relativedelta(
-            dt.date.fromisoformat(date), dt.date.fromisoformat(self.acquisition_date)
+            dt.date.fromisoformat(date), dt.date.fromisoformat(self.start_date)
         )
         total_months = difference.years * 12 + difference.months
         return npf.fv(self.expected_monthly_return, total_months, 0, -self.value)
 
     def sell_real_estate(self, date: str):
-        current_value = self.calculate_future_value(date)
-        self.value = 0
-        self.acquisition_date = date
-        return current_value
+        # TODO: need to implement the sell_real_estate method
+        pass

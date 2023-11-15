@@ -1,7 +1,6 @@
 import datetime as dt
-import logging
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class CashFlow:
@@ -15,15 +14,12 @@ class CashFlow:
         else:
             self.outflows[entity.name] = entity
 
-    def calculate_monthly_cash_flow(self, date: str):
-        inflows = 0
-        outflows = 0
-        for entity in self.inflows.values():
-            logger.info(f"{entity.name:15} ${entity.calculate_monthly_cash_flow(date)}")
-            inflows += entity.calculate_monthly_cash_flow(date)
-
-        for entity in self.outflows.values():
-            logger.info(f"{entity.name:15} ${entity.calculate_monthly_cash_flow(date)}")
-            outflows += entity.calculate_monthly_cash_flow(date)
-
-        return inflows + outflows
+    def calculate_monthly_cash_flow(self, date):
+        total_inflows = sum(
+            entity.calculate_monthly_cash_flow(date) for entity in self.inflows.values()
+        )
+        total_outflows = sum(
+            entity.calculate_monthly_cash_flow(date)
+            for entity in self.outflows.values()
+        )
+        return total_inflows + total_outflows

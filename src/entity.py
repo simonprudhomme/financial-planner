@@ -1,22 +1,23 @@
 import datetime as dt
-from typing import Union
-
-from src.amount import Amount
+from abc import ABC, abstractmethod
 
 
-class FinancialEntity:
-    def __init__(
-        self,
-        name: str,
-        amount: Union[Amount, int],
-        start_date=dt.date.today().isoformat(),
-    ):
+class FinancialEntity(ABC):
+    def __init__(self, name, start_date=None, end_date=None):
         self.name = name
-        self.amount = amount
-        self.start_date = start_date
+        self.start_date = (
+            start_date if start_date is not None else dt.date.today().isoformat()
+        )
+        self.end_date = end_date if end_date is not None else "2999-12-31"
 
-    def calculate_monthly_cash_flow(self, current_date):
-        if isinstance(self.amount, Amount):
-            return self.amount.calculate_future_value(current_date)
-        else:
-            return self.amount
+    @abstractmethod
+    def check_if_active(self, date: str):
+        pass
+
+    @abstractmethod
+    def calculate_future_value(self, date: str):
+        pass
+
+    @abstractmethod
+    def calculate_monthly_cash_flow(self, date: str):
+        pass
