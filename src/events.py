@@ -1,19 +1,17 @@
-from dataclasses import dataclass
-from typing import Dict
+from datetime import date
+from typing import Callable
+
+from src.entity import EntityFactory
 
 
-@dataclass
-class Event:
-    name: str
-    action: Dict[str, str]
+class FinancialEvent:
+    def __init__(self, name: str, event_date: date, action: Callable):
+        self.name = name
+        self.event_date = event_date
+        self.action = action
 
+    def execute(self, context):
+        self.action(context)
 
-class EventManager:
-    def __init__(self):
-        self.events = {}
-
-    def add_event(self, event: Event):
-        self.events[event.name] = event
-
-    def update(self, event_name, **kwargs):
-        self.events[event_name].action.update(kwargs)
+    def create_entity(self, **kwargs):
+        return EntityFactory.create_entity(entity_type="Entity", **kwargs)

@@ -1,36 +1,49 @@
 import datetime as dt
+from typing import List, Optional
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 from loguru import logger
 
+from src.balance import Balance
 from src.cashflow import CashFlow
 
 
 class Simulation:
-    def __init__(self, start_date, duration, cashflow: CashFlow):
-        self.start_date = dt.date.fromisoformat(start_date)
-        self.current_date = self.start_date
+    def __init__(self, start_date, duration, cashflow: CashFlow, balance: Balance):
+        self.start_date = start_date
+        self.date = self.start_date
         self.duration = duration
 
         self.cashflow = cashflow
+        self.balance = balance
         self.simulation_result = {}
 
     def run(self):
         # Main loop for the simulation
-        for month in range(self.duration):
+        for _ in range(self.duration):
+            print(self.date)
             self.process_month()
-            self.current_date = self.current_date + relativedelta(months=1)
+            date = dt.date.fromisoformat(self.date) + relativedelta(months=1)
+            self.date = date.isoformat()
 
     def process_month(self):
         # add the current cashflow to the simulation result
-        current_date_ = self.current_date.isoformat()
-        cashflow_ = self.cashflow.calculate_monthly_cash_flow(current_date_)
-        self.simulation_result[current_date_] = {"cashflow": cashflow_}
-        logger.info(f"{current_date_:10} cashflow $ {cashflow_:.2f}")
+        cashflow_ = self.cashflow.calculate_monthly_cash_flow(self.date)
+        print(cashflow_)
+        print(self.balance.entities["Bank Account"].amount)
+        self.balance.entities["Bank Account"].update(
+            start_date=self.date, amount=cashflow_
+        )
 
-    def plot(self):
-        # plot the simulation result
+        net_worth = self.balance.calculate_net_worth(self.date)
+
+        self.simulation_result[self.date] = {
+            "cashflow": cashflow_,
+            "net_worth": net_worth,
+        }
+
+    def plot(self, columns=["cashflow", "net_worth"]):
         df = pd.DataFrame.from_dict(self.simulation_result, orient="index")
-        df.plot()
+        df[columns].plot()
         return df
