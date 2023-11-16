@@ -22,28 +22,24 @@ class Simulation:
     def run(self):
         # Main loop for the simulation
         for _ in range(self.duration):
-            print(self.date)
             self.process_month()
             date = dt.date.fromisoformat(self.date) + relativedelta(months=1)
             self.date = date.isoformat()
 
     def process_month(self):
-        # add the current cashflow to the simulation result
-        cashflow_ = self.cashflow.calculate_monthly_cash_flow(self.date)
-        print(cashflow_)
-        print(self.balance.entities["Bank Account"].amount)
+        cashflow, cashflow_results = self.cashflow.calculate_monthly_cash_flow(
+            self.date
+        )
         self.balance.entities["Bank Account"].update(
-            start_date=self.date, amount=cashflow_
+            start_date=self.date, amount=cashflow
         )
 
-        net_worth = self.balance.calculate_net_worth(self.date)
+        net_worth, net_worth_results = self.balance.calculate_net_worth(self.date)
 
         self.simulation_result[self.date] = {
-            "cashflow": cashflow_,
-            "net_worth": net_worth,
+            "cashflow": cashflow_results,
+            "net_worth": net_worth_results,
         }
 
-    def plot(self, columns=["cashflow", "net_worth"]):
-        df = pd.DataFrame.from_dict(self.simulation_result, orient="index")
-        df[columns].plot()
-        return df
+    def get_results(self):
+        return self.simulation_result

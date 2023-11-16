@@ -218,10 +218,9 @@ class BankAccount(FinancialEntity):
         name = self.name
         amount = self.calculate_future_value(start_date)
         if "amount" in kwargs:
-            print(kwargs["amount"])
             amount = self.calculate_future_value(start_date) + kwargs["amount"]
             kwargs.pop("amount")
-        super().__init__(name, amount, **kwargs)
+        super().__init__(name, amount=amount, start_date=start_date, **kwargs)
 
 
 class Stock(FinancialEntity):
@@ -282,7 +281,7 @@ class RealEstate(FinancialEntity):
         amount: int,
         cashdown: int,
         annual_expected_return: int,
-        acquisition_costs: Optional[List[Entity]],
+        acquisition_entities: Optional[List[Entity]],
         loan: Optional[Loan],
         annual_inflation_rate=None,
         start_date=None,
@@ -295,8 +294,8 @@ class RealEstate(FinancialEntity):
         self.entities = {}
         if loan:
             self.add_entity(loan)
-        if acquisition_costs:
-            for entity in acquisition_costs:
+        if acquisition_entities:
+            for entity in acquisition_entities:
                 self.add_entity(entity)
 
     @property
