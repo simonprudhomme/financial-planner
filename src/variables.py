@@ -422,4 +422,4 @@ ENTITIES = [
     baby2,
 ]
 
-ASSETS = [bank_account, house, triplex, triplex2, cottage, cottage_land]
+ASSETS_LIAIBILITIES = [bank_account, house, triplex, triplex2, cottage, cottage_land]
