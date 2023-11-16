@@ -1,7 +1,7 @@
 from src.entity import BankAccount, Entity, Loan, RealEstate
 
 # ASSETS
-inflation_rate = 3
+INFLATION_RATE = 3
 bank_account = BankAccount(
     name="Bank Account",
     amount=650_000,
@@ -14,7 +14,7 @@ triplex = RealEstate(
     name="Triplex",
     amount=1_000_000,
     cashdown=200_000,
-    annual_expected_return=4,
+    annual_expected_return=INFLATION_RATE,
     acquisition_entities=[
         Entity(
             name="Cashdown_Triple",
@@ -61,7 +61,7 @@ triplex = RealEstate(
         Entity(
             name="Recurring_Renovations_Triple",
             amount=-650,
-            annual_inflation_rate=inflation_rate,
+            annual_inflation_rate=INFLATION_RATE,
             start_date=triplex_acquisition_date,
         ),
         Entity(
@@ -76,7 +76,7 @@ triplex = RealEstate(
         amount=800_000,
         annual_interest_rate=6.5,
         term_in_year=30,
-        annual_inflation_rate=inflation_rate,
+        annual_inflation_rate=INFLATION_RATE,
         start_date=triplex_acquisition_date,
     ),
     start_date=triplex_acquisition_date,
@@ -134,7 +134,7 @@ triplex2 = RealEstate(
         Entity(
             name="Recurring_Renovations_Triple",
             amount=-650,
-            annual_inflation_rate=inflation_rate,
+            annual_inflation_rate=INFLATION_RATE,
             start_date=triplex_acquisition_date,
         ),
         Entity(
@@ -149,7 +149,7 @@ triplex2 = RealEstate(
         amount=800_000,
         annual_interest_rate=6.5,
         term_in_year=30,
-        annual_inflation_rate=inflation_rate,
+        annual_inflation_rate=INFLATION_RATE,
         start_date=triplex_acquisition_date,
     ),
     start_date=triplex_acquisition_date,
@@ -199,7 +199,7 @@ cottage_land = RealEstate(
         amount=10_000,
         annual_interest_rate=6.5,
         term_in_year=5,
-        annual_inflation_rate=inflation_rate,
+        annual_inflation_rate=INFLATION_RATE,
         start_date=land_cottage_acquisition_date,
     ),
     start_date=land_cottage_acquisition_date,
@@ -246,7 +246,7 @@ cottage = RealEstate(
         Entity(
             name="Recurring_Renovations_Cottage",
             amount=-650,
-            annual_inflation_rate=inflation_rate,
+            annual_inflation_rate=INFLATION_RATE,
             start_date=cottage_acquisition_date,
         ),
     ],
@@ -255,7 +255,7 @@ cottage = RealEstate(
         amount=100_000,
         annual_interest_rate=6.5,
         term_in_year=25,
-        annual_inflation_rate=inflation_rate,
+        annual_inflation_rate=INFLATION_RATE,
         start_date=cottage_acquisition_date,
     ),
     start_date=cottage_acquisition_date,
