@@ -78,6 +78,9 @@ loan= Loan(
 ASSETS_LIAIBILITIES = [loan]        # List of assets and liabilities to be simulated
 ```
 2. Run the simulation
+Using Python
 ```bash
 python main.py
 ```
+or
+Using Notebook `notebook/financial-planner.ipynb`
