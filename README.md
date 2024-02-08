@@ -79,5 +79,5 @@ ASSETS_LIAIBILITIES = [loan]        # List of assets and liabilities to be simul
 ```
 2. Run the simulation
 ```bash
-python src/main.py
+python main.py
 ```
