@@ -7,6 +7,8 @@ from src.cashflow import CashFlow
 from src.simulation import Simulation
 from src.variables import ASSETS_LIAIBILITIES, ENTITIES
 
+import os 
+
 # CASHFLOW
 cashflow = CashFlow()
 for entity in ENTITIES + ASSETS_LIAIBILITIES:
@@ -20,6 +22,8 @@ for entity in ASSETS_LIAIBILITIES:
 
 
 if __name__ == "__main__":
+    os.makedirs("results", exist_ok=True)
+    
     logger.remove()
     logger.add(sys.stderr, level="DEBUG")
 

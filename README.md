@@ -62,7 +62,7 @@ ENTITIES = [salary, food]           # List of entities to be simulated
 
 #### Add Assets and Liabilities
 ```python
-# Define Financial Entity (for example Salary)
+# Define liabilities (for example Loan)
 loan= Loan(
     name="Home Loan",              # Name of the loan
     amount=800_000,                # Loan amount
@@ -71,11 +71,19 @@ loan= Loan(
     annual_inflation_rate=4,       # Annual inflation rate
     start_date='2023-11-01'        # Start date of the loan
     )
+
+# Investment Account
+bank_account = BankAccount(
+    name="Bank Account", # Banq/Investment account
+    amount=150_000,
+    annual_inflation_rate=6, # 6% is the average return of the stock market
+    start_date="2023-10-01",
+)
 ```
 #### Add Assets and Liabilities to the list of assets and liabilities
 ```python
-# next, add the loan to the list of assets and liabilities
-ASSETS_LIAIBILITIES = [loan]        # List of assets and liabilities to be simulated
+# next, add the loan and investiment account to the list of assets and liabilities
+ASSETS_LIAIBILITIES = [loan, bank_account]    # List of assets and liabilities to be simulated
 ```
 2. Run the simulation
 Using Python
@@ -84,3 +92,10 @@ python main.py
 ```
 or
 Using Notebook `notebook/financial-planner.ipynb`
+
+
+## Roadmap
+- [ ] Add more better bank account/ investment account model
+- [ ] Add distribution to the simulation (ei. gaussian for inflation, poisson for salary increase)
+- [ ] Add more complex event simulation
+- [ ] factor in tax

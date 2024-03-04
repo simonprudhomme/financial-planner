@@ -34,6 +34,11 @@ class Simulation:
         self.balance.entities["Bank Account"].update(
             start_date=self.date, amount=cashflow
         )
+        if self.balance.entities["Bank Account"].amount < 0:
+            logger.error(
+                f"Bank Account has a negative balance. Date: {self.date}, Amount: {self.balance.entities['Bank Account'].amount}"
+            )
+            raise ValueError("Bank Account has a negative balance")
 
         net_worth, net_worth_results = self.balance.calculate_net_worth(self.date)
 
@@ -61,8 +66,8 @@ class Simulation:
         net_worth_df = pd.DataFrame(net_worth_data).T
 
         # Convert index to datetime
-        cashflow_df.index = pd.to_datetime(cashflow_df.index)
-        net_worth_df.index = pd.to_datetime(net_worth_df.index)
+        cashflow_df.index.name = "Date"
+        net_worth_df.index.name = "Date"
 
         if save_to_excel:
             # Save the DataFrames to an Excel files

@@ -4,7 +4,7 @@ from src.entity import BankAccount, Entity, Loan, RealEstate
 INFLATION_RATE = 3
 bank_account = BankAccount(
     name="Bank Account", # Banq/Investment account
-    amount=150_000,
+    amount=650_000,
     annual_inflation_rate=6, # 6% is the average return of the stock market
     start_date="2023-10-01",
 )
